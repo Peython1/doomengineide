@@ -21,13 +21,19 @@ import {
   Image,
   HelpCircle,
   Users,
+  Database,
+  CloudLightning,
+  GitBranch
 } from 'lucide-react';
 
 const AppSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader>
-        <h3 className="text-sm font-medium">GlyEngine IDE</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium">DoomEngine IDLE</h3>
+          <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Beta</span>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -52,6 +58,12 @@ const AppSidebar = () => {
                   <span>Executar</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <GitBranch className="h-4 w-4" />
+                  <span>Controle de Versão</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -72,6 +84,12 @@ const AppSidebar = () => {
                   <span>Documentação</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <Database className="h-4 w-4" />
+                  <span>Banco de Dados</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -90,6 +108,12 @@ const AppSidebar = () => {
                 <SidebarMenuButton>
                   <HelpCircle className="h-4 w-4" />
                   <span>Ajuda</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <CloudLightning className="h-4 w-4" />
+                  <span>Marketplace</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

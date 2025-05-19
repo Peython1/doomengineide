@@ -1,18 +1,37 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Play, Bug, Save, Share } from 'lucide-react';
+import { 
+  Play, 
+  Bug, 
+  Save, 
+  Share, 
+  GitBranch,
+  FileCode
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import UserProfileButton from '../auth/UserProfileButton';
 
 const Header = () => {
   const { toast } = useToast();
+  const [isRunning, setIsRunning] = useState(false);
 
   const handleRun = () => {
+    setIsRunning(true);
     toast({
       title: "Executando aplicação",
       description: "Iniciando execução do código.",
     });
+    
+    // Simulação de tempo de execução
+    setTimeout(() => setIsRunning(false), 1500);
   };
 
   const handleDebug = () => {
@@ -41,13 +60,19 @@ const Header = () => {
       <div className="flex items-center gap-2">
         <SidebarTrigger />
         <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          GlyEngine
+          DoomEngine IDLE
         </h1>
       </div>
       <div className="flex items-center gap-2">
-        <Button size="sm" variant="outline" onClick={handleRun}>
+        <Button 
+          size="sm" 
+          variant={isRunning ? "secondary" : "outline"} 
+          onClick={handleRun}
+          disabled={isRunning}
+          className="transition-all"
+        >
           <Play className="w-4 h-4 mr-2" />
-          Executar
+          {isRunning ? "Executando..." : "Executar"}
         </Button>
         <Button size="sm" variant="outline" onClick={handleDebug}>
           <Bug className="w-4 h-4 mr-2" />
@@ -57,13 +82,31 @@ const Header = () => {
           <Save className="w-4 h-4 mr-2" />
           Salvar
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="outline">
+              <GitBranch className="w-4 h-4 mr-2" />
+              Git
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-card border-border">
+            <DropdownMenuItem className="cursor-pointer">
+              <FileCode className="w-4 h-4 mr-2" />
+              Commit
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">
+              <GitBranch className="w-4 h-4 mr-2" />
+              Branches
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button size="sm" variant="outline" onClick={handleShare}>
           <Share className="w-4 h-4 mr-2" />
           Compartilhar
         </Button>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">v1.0.0</span>
+        <UserProfileButton />
       </div>
     </header>
   );
