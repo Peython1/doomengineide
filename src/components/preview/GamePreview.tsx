@@ -4,107 +4,59 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Maximize2, RefreshCw } from 'lucide-react';
 
-const GamePreview = () => {
+interface GamePreviewProps {
+  onCanvasRef?: (ref: HTMLCanvasElement | null) => void;
+}
+
+const GamePreview = ({ onCanvasRef }: GamePreviewProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
   
-  // Simulação simples de renderização de um jogo Lua
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    const player = {
-      x: 100,
-      y: 100,
-      dx: 100, // velocidade em pixels por segundo
-      dy: 80,
-      radius: 20
-    };
-    
-    const render = (time: number) => {
-      // Atualizar posição do jogador
-      const now = time / 1000;
-      player.x += Math.sin(now) * player.dx * 0.016;
-      player.y += Math.cos(now * 0.7) * player.dy * 0.016;
-      
-      // Manter o jogador dentro do canvas
-      if (player.x < player.radius) player.x = player.radius;
-      if (player.x > canvas.width - player.radius) player.x = canvas.width - player.radius;
-      if (player.y < player.radius) player.y = player.radius;
-      if (player.y > canvas.height - player.radius) player.y = canvas.height - player.radius;
-      
-      // Limpar canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Desenhar grid de fundo
-      ctx.strokeStyle = 'rgba(100, 100, 255, 0.1)';
-      ctx.lineWidth = 1;
-      
-      // Linhas verticais
-      for (let x = 0; x < canvas.width; x += 50) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-      }
-      
-      // Linhas horizontais
-      for (let y = 0; y < canvas.height; y += 50) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-      }
-      
-      // Desenhar jogador
-      ctx.fillStyle = 'rgba(74, 105, 189, 1)';
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Desenhar texto
-      ctx.fillStyle = 'yellow';
-      ctx.font = '12px monospace';
-      ctx.fillText(`Posição: ${Math.round(player.x)}, ${Math.round(player.y)}`, 10, 20);
-
-      // Continuar animação
-      animationRef.current = requestAnimationFrame(render);
-    };
-    
-    animationRef.current = requestAnimationFrame(render);
-    
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, []);
-
-  const handleRefresh = () => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+    if (canvasRef.current && onCanvasRef) {
+      onCanvasRef(canvasRef.current);
     }
     
-    animationRef.current = requestAnimationFrame((time) => {
+    return () => {
+      if (onCanvasRef) {
+        onCanvasRef(null);
+      }
+    };
+  }, [onCanvasRef]);
+
+  const handleRefresh = () => {
+    // Esta função será implementada no componente pai via props
+    if (canvasRef.current) {
       const canvas = canvasRef.current;
-      if (!canvas) return;
-      
       const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      const render = (time: number) => {
-        // Atualização reiniciada
-        // ... mesmo código de renderização ...
-        animationRef.current = requestAnimationFrame(render);
-      };
-      
-      animationRef.current = requestAnimationFrame(render);
-    });
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Desenhar um padrão de grade para indicar que foi atualizado
+        ctx.strokeStyle = 'rgba(100, 100, 255, 0.1)';
+        ctx.lineWidth = 1;
+        
+        // Linhas verticais
+        for (let x = 0; x < canvas.width; x += 50) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        
+        // Linhas horizontais
+        for (let y = 0; y < canvas.height; y += 50) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+        
+        // Desenhar texto de início
+        ctx.fillStyle = 'white';
+        ctx.font = '16px monospace';
+        ctx.fillText('Clique em "Executar" para iniciar o jogo', canvas.width / 2 - 180, canvas.height / 2);
+      }
+    }
   };
 
   const handleFullScreen = () => {
@@ -115,6 +67,11 @@ const GamePreview = () => {
       console.error(`Erro ao entrar em tela cheia: ${err.message}`);
     });
   };
+
+  // Inicializar o canvas com uma grade básica
+  useEffect(() => {
+    handleRefresh();
+  }, []);
 
   return (
     <Card className="border-0 shadow-none h-full flex flex-col">

@@ -6,7 +6,7 @@ export interface Project {
   user_id?: string;
   name: string;
   description?: string;
-  content: Record<string, string>; // arquivos do projeto: { "main.lua": "código aqui" }
+  content: Record<string, string>; // arquivo principal e arquivo suporte: { "main.lua": "código aqui" }
   created_at?: string;
   updated_at?: string;
 }
@@ -123,6 +123,63 @@ export class ProjectService {
       console.error('Error deleting project:', error);
       return false;
     }
+  }
+
+  /**
+   * Cria um projeto padrão para novos usuários
+   */
+  async createDefaultProject(): Promise<Project | null> {
+    const defaultCode = `--[[ DoomEngine - Exemplo ]]
+
+-- Configuração inicial
+function love.load()
+  player = {
+    x = 400,
+    y = 300,
+    speed = 200,
+    img = nil
+  }
+end
+
+-- Atualização lógica do jogo
+function love.update(dt)
+  -- Controles de movimento
+  if love.keyboard.isDown("right") then
+    player.x = player.x + player.speed * dt
+  end
+  
+  if love.keyboard.isDown("left") then
+    player.x = player.x - player.speed * dt
+  end
+  
+  if love.keyboard.isDown("down") then
+    player.y = player.y + player.speed * dt
+  end
+  
+  if love.keyboard.isDown("up") then
+    player.y = player.y - player.speed * dt
+  end
+end
+
+-- Renderização do jogo
+function love.draw()
+  love.graphics.setColor(1, 1, 1)
+  
+  -- Desenhar o jogador
+  love.graphics.circle("fill", player.x, player.y, 20)
+  
+  -- Informações de debug
+  love.graphics.setColor(1, 1, 0)
+  love.graphics.print("Posição: " .. player.x .. ", " .. player.y, 10, 10)
+end`;
+
+    return this.createProject({
+      name: "Meu Primeiro Jogo",
+      description: "Um projeto de exemplo criado automaticamente",
+      content: {
+        "main.lua": defaultCode
+      }
+    });
   }
 }
 
