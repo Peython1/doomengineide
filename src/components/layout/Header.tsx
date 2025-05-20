@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -68,14 +67,13 @@ const Header = ({
     if (runCode) {
       runCode();
     } else {
-      setIsRunning(true);
       toast({
         title: "Executando aplicação",
         description: "Iniciando execução do código.",
       });
       
       // Simulação de tempo de execução
-      setTimeout(() => setIsRunning(false), 1500);
+      // Removido o setIsRunning, pois não está disponível na prop
     }
   };
 

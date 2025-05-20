@@ -7,13 +7,14 @@ import { ResizablePanelGroup } from '@/components/ui/resizable';
 
 interface MainLayoutProps {
   children: React.ReactNode;
+  header?: React.ReactNode; // Added header prop
 }
 
-const MainLayout = ({ children }: MainLayoutProps) => {
+const MainLayout = ({ children, header }: MainLayoutProps) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex flex-col w-full">
-        <Header />
+        {header || <Header />}
         <div className="flex flex-1 overflow-hidden">
           <AppSidebar />
           <main className="flex-1 overflow-hidden">

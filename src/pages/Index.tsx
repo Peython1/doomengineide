@@ -49,20 +49,22 @@ const Index = () => {
     setCurrentProject(project);
   };
 
+  const customHeader = (
+    <Header 
+      currentProject={currentProject}
+      currentCode={currentCode}
+      isRunning={isRunning}
+      isAuthenticated={!!user}
+      runCode={runCode}
+      saveProject={saveProject}
+      createNewProject={createNewProject}
+      loadProject={loadProject}
+    />
+  );
+
   return (
     <MainLayout
-      header={
-        <Header 
-          currentProject={currentProject}
-          currentCode={currentCode}
-          isRunning={isRunning}
-          isAuthenticated={!!user}
-          runCode={runCode}
-          saveProject={saveProject}
-          createNewProject={createNewProject}
-          loadProject={loadProject}
-        />
-      }
+      header={customHeader}
     >
       <IDE />
     </MainLayout>

@@ -136,10 +136,10 @@ const CodeEditor = ({ code, onCodeChange }: CodeEditorProps) => {
   };
   
   const setSelection = (element: HTMLDivElement, start: number, end: number) => {
-    const charIndex = 0;
+    let charIndex = 0;
     let done = false;
     
-    const traverseNodes = (node: Node): boolean => {
+    const traverseNodes = (node: Node): number => {
       if (node.nodeType === Node.TEXT_NODE) {
         const textNode = node as Text;
         const nextCharIndex = charIndex + textNode.length;
@@ -157,16 +157,17 @@ const CodeEditor = ({ code, onCodeChange }: CodeEditorProps) => {
             range.setEnd(node, end - charIndex);
           }
           
-          selection?.removeAllRanges();
-          selection?.addRange(range);
+          if (selection) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
           done = true;
         }
         return nextCharIndex;
       } else {
         let currentIndex = charIndex;
-        for (let i = 0; i < node.childNodes.length; i++) {
+        for (let i = 0; i < node.childNodes.length && !done; i++) {
           currentIndex = traverseNodes(node.childNodes[i]);
-          if (done) break;
         }
         return currentIndex;
       }
