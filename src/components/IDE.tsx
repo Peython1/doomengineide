@@ -13,181 +13,48 @@ import FileExplorer from './fileExplorer/FileExplorer';
 import { Button } from '@/components/ui/button';
 import { Settings, Maximize2, Minimize2, Code, Folder } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { projectService, Project } from '@/services/ProjectService';
+import { Project } from '@/services/ProjectService';
 import { luaService } from '@/services/LuaService';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
-const IDE = () => {
+interface IDEProps {
+  currentProject: Project | null;
+  currentCode: string;
+  setCurrentCode: (code: string) => void;
+  isRunning: boolean;
+  runCode: () => void;
+  saveProject: () => void;
+  consoleMessages: {type: 'info' | 'error' | 'warning', message: string}[];
+  onCanvasRef: (ref: HTMLCanvasElement | null) => void;
+}
+
+const IDE = ({
+  currentProject,
+  currentCode,
+  setCurrentCode,
+  isRunning,
+  runCode,
+  saveProject,
+  consoleMessages,
+  onCanvasRef
+}: IDEProps) => {
   // Estado para controlar o layout dos painéis
   const [filePanelCollapsed, setFilePanelCollapsed] = useState(false);
   const [consolePanelCollapsed, setConsolePanelCollapsed] = useState(false);
   const [previewPanelCollapsed, setPreviewPanelCollapsed] = useState(false);
   
-  // Estado do projeto atual
-  const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const [currentCode, setCurrentCode] = useState<string>('');
-  const [isRunning, setIsRunning] = useState(false);
-  const [consoleMessages, setConsoleMessages] = useState<{id: number, type: 'info' | 'error' | 'warning', message: string, timestamp: Date}[]>([]);
-  const [user, setUser] = useState<any>(null);
-  
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const { toast } = useToast();
-  
-  // Verificar autenticação do usuário
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
-      
-      // Escutar mudanças de autenticação
-      const { data: authListener } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-          setUser(session?.user || null);
-        }
-      );
-      
-      // Se o usuário estiver autenticado, tentar carregar o último projeto
-      if (data.session?.user) {
-        loadLastProject();
-      }
-    };
-    
-    checkAuth();
-  }, []);
   
   // Inicializar o Lua runtime
   useEffect(() => {
     if (canvasRef.current) {
       luaService.setCanvas(canvasRef.current);
-    }
-  }, []);
-  
-  // Carregar o último projeto ou criar um projeto padrão
-  const loadLastProject = async () => {
-    const projects = await projectService.getUserProjects();
-    
-    if (projects.length > 0) {
-      // Carregar o projeto mais recente
-      setCurrentProject(projects[0]);
-      if (projects[0].content && projects[0].content['main.lua']) {
-        setCurrentCode(projects[0].content['main.lua']);
-      }
-      
-      addConsoleMessage('info', `Projeto "${projects[0].name}" carregado`);
-    } else {
-      // Criar um projeto padrão
-      createNewProject();
-    }
-  };
-  
-  // Criar um novo projeto
-  const createNewProject = async () => {
-    const newProject = await projectService.createDefaultProject();
-    if (newProject) {
-      setCurrentProject(newProject);
-      if (newProject.content && newProject.content['main.lua']) {
-        setCurrentCode(newProject.content['main.lua']);
-      }
-      
-      addConsoleMessage('info', `Novo projeto "${newProject.name}" criado`);
-      toast({
-        title: "Projeto criado",
-        description: `Novo projeto "${newProject.name}" criado com sucesso.`,
-      });
-    } else {
-      addConsoleMessage('error', 'Falha ao criar novo projeto');
-      toast({
-        title: "Erro",
-        description: "Falha ao criar novo projeto.",
-        variant: "destructive",
-      });
-    }
-  };
-  
-  // Salvar o projeto atual
-  const saveProject = async () => {
-    if (!user) {
-      toast({
-        title: "Não autenticado",
-        description: "Você precisa estar logado para salvar projetos.",
-        variant: "destructive",
-      });
-      return;
+      onCanvasRef(canvasRef.current);
     }
     
-    // Se já existe um projeto, atualiza
-    if (currentProject?.id) {
-      const updatedProject = {
-        ...currentProject,
-        content: { 
-          ...currentProject.content,
-          'main.lua': currentCode 
-        }
-      };
-      
-      const result = await projectService.updateProject(updatedProject);
-      
-      if (result) {
-        setCurrentProject(result);
-        addConsoleMessage('info', `Projeto "${result.name}" salvo`);
-        toast({
-          title: "Projeto salvo",
-          description: `Projeto "${result.name}" salvo com sucesso.`,
-        });
-      } else {
-        addConsoleMessage('error', 'Falha ao salvar projeto');
-        toast({
-          title: "Erro",
-          description: "Falha ao salvar projeto.",
-          variant: "destructive",
-        });
-      }
-    }
-    // Se não existe, cria um novo
-    else {
-      createNewProject();
-    }
-  };
-  
-  // Executar o código
-  const runCode = async () => {
-    if (!currentCode.trim()) {
-      addConsoleMessage('warning', 'Nenhum código para executar');
-      return;
-    }
-    
-    setIsRunning(true);
-    addConsoleMessage('info', 'Executando código...');
-    
-    const result = luaService.executeCode(currentCode);
-    
-    if (result.success) {
-      addConsoleMessage('info', 'Código executado com sucesso');
-    } else {
-      addConsoleMessage('error', 'Erro ao executar código');
-    }
-    
-    // Adicione as mensagens do Lua ao console
-    result.output.forEach(message => {
-      addConsoleMessage('info', message);
-    });
-    
-    setIsRunning(false);
-  };
-  
-  // Adicionar mensagem ao console
-  const addConsoleMessage = (type: 'info' | 'error' | 'warning', message: string) => {
-    setConsoleMessages(prev => [
-      ...prev,
-      {
-        id: Date.now(),
-        type,
-        message,
-        timestamp: new Date()
-      }
-    ]);
-  };
+    return () => {
+      onCanvasRef(null);
+    };
+  }, [canvasRef.current, onCanvasRef]);
   
   // Manipuladores para alternar o estado de colapso dos painéis
   const toggleFilePanel = () => {
@@ -219,12 +86,29 @@ const IDE = () => {
   React.useEffect(() => {
     const savedLayout = localStorage.getItem('doomengine-layout');
     if (savedLayout) {
-      const layout = JSON.parse(savedLayout);
-      setFilePanelCollapsed(layout.filePanelCollapsed);
-      setConsolePanelCollapsed(layout.consolePanelCollapsed);
-      setPreviewPanelCollapsed(layout.previewPanelCollapsed);
+      try {
+        const layout = JSON.parse(savedLayout);
+        setFilePanelCollapsed(layout.filePanelCollapsed);
+        setConsolePanelCollapsed(layout.consolePanelCollapsed);
+        setPreviewPanelCollapsed(layout.previewPanelCollapsed);
+      } catch (e) {
+        console.error("Erro ao carregar layout:", e);
+      }
     }
   }, []);
+
+  // Função para lidar com a seleção de arquivo
+  const handleFileSelect = (content: string) => {
+    setCurrentCode(content);
+  };
+
+  // Função para formatar logs do console
+  const formattedLogs = consoleMessages.map((msg, idx) => ({
+    id: idx,
+    type: msg.type,
+    message: msg.message,
+    timestamp: new Date()
+  }));
 
   return (
     <div className="h-[calc(100vh-56px)] w-full">
@@ -259,7 +143,7 @@ const IDE = () => {
             <div className="flex-1 overflow-hidden">
               <FileExplorer 
                 currentProject={currentProject} 
-                onFileSelect={(content) => setCurrentCode(content)} 
+                onFileSelect={handleFileSelect} 
               />
             </div>
           </div>
@@ -328,7 +212,7 @@ const IDE = () => {
                     </TooltipProvider>
                   </div>
                   <div className="flex-1 overflow-hidden">
-                    <ConsoleOutput logs={consoleMessages} />
+                    <ConsoleOutput logs={formattedLogs} />
                   </div>
                 </div>
               </ResizablePanel>
@@ -379,7 +263,14 @@ const IDE = () => {
               </TooltipProvider>
             </div>
             <div className="flex-1 overflow-hidden">
-              <GamePreview onCanvasRef={ref => canvasRef.current = ref} />
+              <GamePreview 
+                onCanvasRef={ref => {
+                  canvasRef.current = ref;
+                  onCanvasRef(ref);
+                }} 
+                isRunning={isRunning}
+                onRefresh={runCode}
+              />
             </div>
           </div>
         </ResizablePanel>
