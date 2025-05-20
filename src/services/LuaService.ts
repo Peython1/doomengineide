@@ -103,37 +103,36 @@ export class LuaService {
     const isDownFn = (L: any): number => {
       const key = lua.lua_tojsstring(L, 1);
       // Simplified, needs proper implementation
-      const isPressed = false; // Replace with actual keyboard state
-      lua.lua_pushboolean(L, isPressed ? 1 : 0);
+      // Fix: Use 1 for true and 0 for false when pushing boolean to Lua
+      lua.lua_pushboolean(L, 0); // Push 0 for false
       return 1; // Return one value
     };
 
-    // Register love API to Lua
-    lua.lua_pushliteral(this.L, "love");
+    // Create the love global table
     lua.lua_newtable(this.L);
 
     // Set up graphics table
-    lua.lua_pushliteral(this.L, "graphics");
+    lua.lua_pushstring(this.L, "graphics");
     lua.lua_newtable(this.L);
 
     // Add graphics functions
-    lua.lua_pushliteral(this.L, "setColor");
+    lua.lua_pushstring(this.L, "setColor");
     lua.lua_pushcfunction(this.L, setColorFn);
     lua.lua_settable(this.L, -3);
     
-    lua.lua_pushliteral(this.L, "print");
+    lua.lua_pushstring(this.L, "print");
     lua.lua_pushcfunction(this.L, printFn);
     lua.lua_settable(this.L, -3);
     
-    lua.lua_pushliteral(this.L, "circle");
+    lua.lua_pushstring(this.L, "circle");
     lua.lua_pushcfunction(this.L, circleFn);
     lua.lua_settable(this.L, -3);
     
-    lua.lua_pushliteral(this.L, "rectangle");
+    lua.lua_pushstring(this.L, "rectangle");
     lua.lua_pushcfunction(this.L, rectangleFn);
     lua.lua_settable(this.L, -3);
     
-    lua.lua_pushliteral(this.L, "clear");
+    lua.lua_pushstring(this.L, "clear");
     lua.lua_pushcfunction(this.L, clearFn);
     lua.lua_settable(this.L, -3);
 
@@ -141,11 +140,11 @@ export class LuaService {
     lua.lua_settable(this.L, -3);
 
     // Set up keyboard table
-    lua.lua_pushliteral(this.L, "keyboard");
+    lua.lua_pushstring(this.L, "keyboard");
     lua.lua_newtable(this.L);
 
     // Add keyboard functions
-    lua.lua_pushliteral(this.L, "isDown");
+    lua.lua_pushstring(this.L, "isDown");
     lua.lua_pushcfunction(this.L, isDownFn);
     lua.lua_settable(this.L, -3);
 
