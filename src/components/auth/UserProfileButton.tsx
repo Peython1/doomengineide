@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { User, LogOut, Settings, User as UserIcon, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import AuthModal from './AuthModal';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,9 @@ const UserProfileButton = () => {
   const [loading, setLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { toast } = useToast();
+
+  // Verificar se o usuário é admin
+  const isAdmin = user?.email === 'admin@doomengineidle.com';
 
   // Carregar dados do usuário na inicialização
   useEffect(() => {
@@ -81,13 +84,19 @@ const UserProfileButton = () => {
           <Button variant="ghost" size="sm" className="gap-2">
             <Avatar className="h-6 w-6">
               <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
-              <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+              <AvatarFallback>
+                {isAdmin ? <Shield className="h-4 w-4" /> : user.email?.charAt(0).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
-            <span className="hidden md:inline-block">{user.email}</span>
+            <span className="hidden md:inline-block">
+              {isAdmin ? 'Admin' : user.email}
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+          <DropdownMenuLabel>
+            {isAdmin ? 'Administrador' : 'Minha Conta'}
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
             <User className="mr-2 h-4 w-4" />

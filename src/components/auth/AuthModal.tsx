@@ -24,6 +24,24 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setLoading(true);
     
     try {
+      // Special handling for admin login
+      if (isLogin && email.toUpperCase() === 'ADMIN' && password === 'admin333') {
+        // Admin login bypass - this will use admin credentials but not require email verification
+        const { error } = await supabase.auth.signInWithPassword({ 
+          email: 'admin@doomengineidle.com', 
+          password: 'admin333' 
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Login de administrador",
+          description: "Bem-vindo ao painel de administração do DoomEngine IDLE!",
+        });
+        onClose();
+        return;
+      }
+      
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         
@@ -73,11 +91,11 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             <Label htmlFor="email">Email</Label>
             <Input 
               id="email" 
-              type="email" 
+              type="text" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               required 
-              placeholder="seu.email@exemplo.com" 
+              placeholder={isLogin ? "Email ou ADMIN" : "seu.email@exemplo.com"} 
             />
           </div>
           
